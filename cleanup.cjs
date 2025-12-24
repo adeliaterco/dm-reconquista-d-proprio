@@ -11,17 +11,17 @@ console.log('\n🧹 INICIANDO LIMPEZA DE TRACKING...\n');
 const projectRoot = __dirname;
 const backupDir = path.join(projectRoot, 'backup', new Date().toISOString().replace(/:/g, '-').split('.')[0]);
 
-// Arquivos a serem modificados
+// Arquivos a serem modificados (CAMINHOS CORRIGIDOS)
 const filesToModify = [
   {
-    path: 'components/Layout.tsx',
+    path: 'src/components/Layout.tsx',
     name: 'Layout.tsx',
     removeImport: true,
     removeGA4Script: true,
     removeCalls: []
   },
   {
-    path: 'components/Landing.tsx',
+    path: 'src/components/Landing.tsx',
     name: 'Landing.tsx',
     removeImport: true,
     removeGA4Script: false,
@@ -32,7 +32,7 @@ const filesToModify = [
     ]
   },
   {
-    path: 'components/Chat.tsx',
+    path: 'src/components/Chat.tsx',
     name: 'Chat.tsx',
     removeImport: true,
     removeGA4Script: false,
@@ -45,7 +45,7 @@ const filesToModify = [
     ]
   },
   {
-    path: 'components/Result.tsx',
+    path: 'src/components/Result.tsx',
     name: 'Result.tsx',
     removeImport: true,
     removeGA4Script: false,
@@ -60,7 +60,7 @@ const filesToModify = [
   }
 ];
 
-const fileToDelete = 'utils/tracking.ts';
+const fileToDelete = 'src/utils/tracking.ts';
 
 // ========================================
 // FUNÇÕES AUXILIARES
@@ -148,7 +148,7 @@ function processFile(fileConfig) {
   const filePath = path.join(projectRoot, fileConfig.path);
   
   if (!fs.existsSync(filePath)) {
-    console.log(`⚠️  ${fileConfig.name}: Arquivo não encontrado`);
+    console.log(`⚠️  ${fileConfig.name}: Arquivo não encontrado em ${fileConfig.path}`);
     return { success: false, removedLines: 0 };
   }
 
@@ -251,14 +251,14 @@ try {
   console.log('✅ LIMPEZA CONCLUÍDA COM SUCESSO!\n');
 
   console.log('💡 DICA: Se algo der errado, restaure o backup:');
-  console.log(`   cp ${backupDir}/* components/`);
-  console.log(`   cp ${backupDir}/tracking.ts.backup utils/tracking.ts\n`);
+  console.log(`   cp ${backupDir}/* src/components/`);
+  console.log(`   cp ${backupDir}/tracking.ts.backup src/utils/tracking.ts\n`);
 
 } catch (error) {
   console.error('\n❌ ERRO DURANTE A LIMPEZA:');
   console.error(error.message);
   console.error('\n💡 Restaure o backup manualmente:');
-  console.error(`   cp ${backupDir}/* components/`);
-  console.error(`   cp ${backupDir}/tracking.ts.backup utils/tracking.ts\n`);
+  console.error(`   cp ${backupDir}/* src/components/`);
+  console.error(`   cp ${backupDir}/tracking.ts.backup src/utils/tracking.ts\n`);
   process.exit(1);
 }

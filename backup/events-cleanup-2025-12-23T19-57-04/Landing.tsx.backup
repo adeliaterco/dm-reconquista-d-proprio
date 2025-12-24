@@ -53,7 +53,8 @@ export default function Landing({ onNavigate }: LandingProps) {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         tracking.scrollDepth(50);
-                        }
+                        ga4Tracking.landingScrollDepth(50);
+                    }
                 });
             },
             { threshold: 0.5 }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { tracking } from '../utils/tracking';
 import { storage } from '../utils/storage';
 import { playKeySound } from '../utils/animations';
 import { QuizAnswer } from '../types/quiz';
@@ -160,7 +161,7 @@ export default function Chat({ onNavigate }: ChatProps) {
     ensureUTMs();
 
     tracking.pageView('chat');
-    ();
+    tracking.chatStarted();
     
     ga4Tracking.chatPageView();
     ga4Tracking.chatStarted();
@@ -262,7 +263,7 @@ export default function Chat({ onNavigate }: ChatProps) {
             askQuestion(currentQuestion + 1);
           }, 800);
         } else {
-          ();
+          tracking.chatCompleted();
           ga4Tracking.chatCompleted();
           
           setTimeout(() => {

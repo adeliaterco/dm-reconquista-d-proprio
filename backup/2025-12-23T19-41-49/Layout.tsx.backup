@@ -8,25 +8,9 @@ export default function Layout({ children }: LayoutProps) {
   
   useEffect(() => {
     // ========================================
-    // ✅ GOOGLE TAG MANAGER
-    // ========================================
-    const gtmId = 'GTM-T8M558NG';
-    
-    // GTM Script (Head)
-    const gtmScript = document.createElement('script');
-    gtmScript.innerHTML = `
-      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-      })(window,document,'script','dataLayer','${gtmId}');
-    `;
-    document.head.appendChild(gtmScript);
-
-    // ========================================
     // ✅ UTMIFY PIXEL
     // ========================================
-    window.pixelId = "683e4507be02a8b1bece6041";
+    window.pixelId = "692a51417601ebc1d4536861";
     const utmifyPixelScript = document.createElement("script");
     utmifyPixelScript.setAttribute("async", "");
     utmifyPixelScript.setAttribute("defer", "");
@@ -43,20 +27,29 @@ export default function Layout({ children }: LayoutProps) {
     utmifyUtmScript.setAttribute("defer", "");
     document.head.appendChild(utmifyUtmScript);
 
+    // ========================================
+    // ✅ GOOGLE ANALYTICS 4 (GA4)
+    // ========================================
+    const ga4Script = document.createElement("script");
+    ga4Script.async = true;
+    ga4Script.src = "https://www.googletagmanager.com/gtag/js?id=G-G6B4TMDNTK";
+    document.head.appendChild(ga4Script);
+
+    const ga4ConfigScript = document.createElement("script");
+    ga4ConfigScript.innerHTML = `
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-G6B4TMDNTK');
+    `;
+    document.head.appendChild(ga4ConfigScript);
+
+    console.log("✅ Pixels carregados: Utmify Pixel, Utmify UTM, GA4");
+
   }, []); // ✅ Executa apenas 1 vez quando o componente monta
 
   return (
     <>
-      {/* GTM NoScript (fallback) */}
-      <noscript>
-        <iframe 
-          src="https://www.googletagmanager.com/ns.html?id=GTM-T8M558NG"
-          height="0" 
-          width="0" 
-          style={{ display: 'none', visibility: 'hidden' }}
-        />
-      </noscript>
-      
       {/* ✅ Renderiza os componentes filhos (Chat, Result, etc) */}
       {children}
     </>

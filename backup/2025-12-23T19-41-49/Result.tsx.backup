@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { tracking } from '../utils/tracking';
 import { storage } from '../utils/storage';
 import { playKeySound, getHotmartUrl } from '../utils/animations';
 import { QuizAnswer } from '../types/quiz';
@@ -132,6 +133,7 @@ export default function Result({ onNavigate }: ResultProps) {
                 if (prev > 15) {
                     const newSpots = prev - 1;
                     storage.setSpotsLeft(newSpots);
+                    ga4Tracking.spotsUpdated(newSpots);
                     return newSpots;
                 }
                 return prev;
@@ -169,6 +171,7 @@ export default function Result({ onNavigate }: ResultProps) {
                     if (prev <= 1) {
                         clearInterval(delayInterval);
                         setIsVideoButtonEnabled(true);
+                        ga4Tracking.videoButtonUnlocked({ unlock_time_seconds: 50, video_name: 'VSL Plan Personalizado' });
                         return 0;
                     }
                     return prev - 1;
