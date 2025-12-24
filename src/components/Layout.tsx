@@ -43,7 +43,7 @@ export default function Layout({ children }: LayoutProps) {
     utmifyUtmScript.setAttribute("defer", "");
     document.head.appendChild(utmifyUtmScript);
 
-  }, []); // ✅ Executa apenas 1 vez quando o componente monta
+  }, []);
 
   return (
     <>
