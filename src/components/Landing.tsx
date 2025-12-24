@@ -45,30 +45,15 @@ export default function Landing({ onNavigate }: LandingProps) {
         // ✅ CAPTURA UTMs ASSIM QUE A PÁGINA CARREGA
         captureUTMs();
 
-        tracking.pageView('landing');
+        // Removido: tracking.pageView (gerenciado pelo Utmify)
         ga4Tracking.landingPageView();
 
-        const scrollObserver = new IntersectionObserver(
-            (entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        tracking.scrollDepth(50);
-                        }
-                });
-            },
-            { threshold: 0.5 }
-        );
+        // Removido: scrollObserver (não necessário)
 
-        const ctaElement = document.querySelector('.cta-section-simple');
-        if (ctaElement) scrollObserver.observe(ctaElement);
-
-        return () => {
-            scrollObserver.disconnect();
-        };
     }, []);
 
     const handleCTAClick = () => {
-        tracking.ctaClicked('landing_primary');
+        // Removido: tracking.ctaClicked (gerenciado pelo Utmify)
         ga4Tracking.landingCTAClick();
         onNavigate('chat');
     };
@@ -110,7 +95,7 @@ export default function Landing({ onNavigate }: LandingProps) {
             </div>
 
             {/* CSS INLINE */}
-            <style jsx>{`
+            <style jsx="true">{`
                 .landing-container {
                     min-height: 100vh;
                     display: flex;

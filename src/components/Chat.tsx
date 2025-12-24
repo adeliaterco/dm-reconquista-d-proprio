@@ -159,8 +159,7 @@ export default function Chat({ onNavigate }: ChatProps) {
     // ✅ GARANTE QUE AS UTMs ESTEJAM PRESERVADAS
     ensureUTMs();
 
-    tracking.pageView('chat');
-    ();
+    // Removido: tracking.pageView (gerenciado pelo Utmify)
     
     ga4Tracking.chatPageView();
     ga4Tracking.chatStarted();
@@ -229,7 +228,7 @@ export default function Chat({ onNavigate }: ChatProps) {
     quizData[question.dataKey] = option;
     storage.saveQuizData(quizData);
 
-    tracking.questionAnswered(question.id, option);
+    // Removido: tracking.questionAnswered (gerenciado pelo Utmify)
     ga4Tracking.questionAnswered(question.id, question.text, option);
 
     const newProgress = ((currentQuestion + 1) / QUESTIONS.length) * 100;
@@ -262,7 +261,6 @@ export default function Chat({ onNavigate }: ChatProps) {
             askQuestion(currentQuestion + 1);
           }, 800);
         } else {
-          ();
           ga4Tracking.chatCompleted();
           
           setTimeout(() => {
@@ -284,7 +282,7 @@ export default function Chat({ onNavigate }: ChatProps) {
   };
 
   const handleViewPlan = () => {
-    tracking.ctaClicked('chat_complete');
+    // Removido: tracking.ctaClicked (gerenciado pelo Utmify)
     ga4Tracking.chatCTAClick();
     onNavigate('resultado');
   };
