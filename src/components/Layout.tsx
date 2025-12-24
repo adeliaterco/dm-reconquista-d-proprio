@@ -8,6 +8,37 @@ export default function Layout({ children }: LayoutProps) {
   
   useEffect(() => {
     // ========================================
+    // 🚀 SERVER-SIDE TRACKING INTERCEPTOR
+    // ⚠️ DEVE VIR ANTES DO GTM!
+    // ========================================
+    const serverUrl = 'https://gtm.reconquistaprp.online';
+    
+    // Intercepta fetch (GA4 usa isso)
+    const originalFetch = window.fetch;
+    window.fetch = function(...args) {
+      let url = args[0];
+      
+      if (typeof url === 'string' && url.includes('google-analytics.com')) {
+        args[0] = url.replace(/https?:\/\/(www\.)?google-analytics\.com/g, serverUrl);
+        console.log('✅ [CAPI] Evento redirecionado para servidor:', args[0]);
+      }
+      
+      return originalFetch.apply(this, args);
+    };
+    
+    // Intercepta sendBeacon (usado ao sair da página)
+    const originalBeacon = navigator.sendBeacon;
+    navigator.sendBeacon = function(url, data) {
+      if (typeof url === 'string' && url.includes('google-analytics.com')) {
+        url = url.replace(/https?:\/\/(www\.)?google-analytics\.com/g, serverUrl);
+        console.log('✅ [CAPI] Beacon redirecionado para servidor:', url);
+      }
+      return originalBeacon.call(navigator, url, data);
+    };
+    
+    console.log('🚀 [CAPI] Server-Side Tracking ativo:', serverUrl);
+
+    // ========================================
     // ✅ GOOGLE TAG MANAGER
     // ========================================
     const gtmId = 'GTM-T8M558NG';
