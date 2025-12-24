@@ -11,7 +11,7 @@ import {
     getVentana72Copy,
     getOfferTitle,
     getFeatures, 
-    getCTA, // Keep getCTA for other uses if any, but hardcode final CTA
+    getCTA,
     getFaseText
 } from '../utils/contentByGender';
 import { getEmotionalValidation } from '../utils/emotionalValidation';
@@ -31,9 +31,9 @@ export default function Result({ onNavigate }: ResultProps) {
 
     // --- ESTADO PARA OS CHECKMARKS DOS BOTÕES ---
     const [buttonCheckmarks, setButtonCheckmarks] = useState<{[key: number]: boolean}>({
-        0: false, // For button after Diagnóstico (Phase 1)
-        1: false, // For button after Video (Phase 2)
-        2: false  // For button after Ventana (Phase 3)
+        0: false,
+        1: false,
+        2: false
     });
 
     // --- PERSISTÊNCIA DO TIMER NO LOCALSTORAGE ---
@@ -101,7 +101,7 @@ export default function Result({ onNavigate }: ResultProps) {
     // --- EFEITO PRINCIPAL DE PROGRESSÃO ---
     useEffect(() => {
         ensureUTMs();
-        tracking.pageView('resultado');
+        // Removido: tracking.pageView (gerenciado pelo Utmify)
         ga4Tracking.resultPageView();
 
         const progressInterval = setInterval(() => {
@@ -121,8 +121,8 @@ export default function Result({ onNavigate }: ResultProps) {
         const timerPhase1 = setTimeout(() => {
             setCurrentPhase(1);
             playKeySound();
-            tracking.revelationViewed('why_left');
-            ga4Tracking.revelationViewed('Por qué te dejó', 1);
+            // Removido: tracking.revelationViewed (gerenciado pelo Utmify)
+            ga4Tracking.revelationViewed('Por qué te dejó');
         }, 2500);
 
         const countdownInterval = setInterval(() => setTimeLeft(prev => (prev <= 1 ? 0 : prev - 1)), 1000);
@@ -185,7 +185,7 @@ export default function Result({ onNavigate }: ResultProps) {
     useEffect(() => {
         if (currentPhase !== 2 || !videoSectionRef.current) return;
         const timer = setTimeout(() => {
-            const vslPlaceholder = videoSectionRef.current.querySelector('.vsl-placeholder');
+            const vslPlaceholder = videoSectionRef.current!.querySelector('.vsl-placeholder');
             if (vslPlaceholder) {
                 vslPlaceholder.innerHTML = `
                     <div style="position: relative; width: 100%; padding-bottom: 56.25%; background: #000; border-radius: 8px; overflow: hidden;">
@@ -214,7 +214,6 @@ export default function Result({ onNavigate }: ResultProps) {
         }
 
         if (targetRef && targetRef.current) {
-            // Adiciona um pequeno delay para garantir que a seção já está montada e visível
             setTimeout(() => {
                 targetRef!.current!.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100); 
@@ -230,53 +229,50 @@ export default function Result({ onNavigate }: ResultProps) {
     // --- HANDLERS DE CLIQUE DOS BOTÕES COM TRANSIÇÃO ---
     const handlePhase1ButtonClick = () => {
         playKeySound();
-        setButtonCheckmarks(prev => ({ ...prev, 0: true })); // Show checkmark for button 0
-        setFadeOutPhase(1); // Start fading out current section (Diagnóstico)
+        setButtonCheckmarks(prev => ({ ...prev, 0: true }));
+        setFadeOutPhase(1);
 
         setTimeout(() => {
-            setCurrentPhase(2); // Advance to next phase (Video)
-            ga4Tracking.phaseProgressionClicked({ phase_from: 1, phase_to: 2, button_name: 'Desbloquear El Vídeo Secreto' });
-            tracking.vslEvent('started');
+            setCurrentPhase(2);
+            ga4Tracking.phaseProgressionClicked(1, 2, 0);
+            // Removido: tracking.vslEvent (gerenciado pelo Utmify)
             ga4Tracking.videoStarted();
-            setFadeOutPhase(null); // Clear fade out state
-            // buttonCheckmarks[0] remains true, but section 1 is unmounted
-        }, 1300); // 0.3s fade-out + 1s for checkmark animation/display
+            setFadeOutPhase(null);
+        }, 1300);
     };
 
     const handlePhase2ButtonClick = () => {
         if (!isVideoButtonEnabled) return;
         playKeySound();
-        setButtonCheckmarks(prev => ({ ...prev, 1: true })); // Show checkmark for button 1
-        setFadeOutPhase(2); // Start fading out current section (Video)
+        setButtonCheckmarks(prev => ({ ...prev, 1: true }));
+        setFadeOutPhase(2);
 
         setTimeout(() => {
-            setCurrentPhase(3); // Advance to next phase (Ventana 72h)
-            ga4Tracking.phaseProgressionClicked({ phase_from: 2, phase_to: 3, button_name: 'Revelar VENTANA DE 72 HORAS' });
-            tracking.revelationViewed('72h_window');
-            ga4Tracking.revelationViewed('Ventana 72 Horas', 2);
-            setFadeOutPhase(null); // Clear fade out state
-            // buttonCheckmarks[1] remains true, but section 2 is unmounted
-        }, 1300); // 0.3s fade-out + 1s for checkmark animation/display
+            setCurrentPhase(3);
+            ga4Tracking.phaseProgressionClicked(2, 3, 0);
+            // Removido: tracking.revelationViewed (gerenciado pelo Utmify)
+            ga4Tracking.revelationViewed('Ventana 72 Horas');
+            setFadeOutPhase(null);
+        }, 1300);
     };
 
     const handlePhase3ButtonClick = () => {
         playKeySound();
-        setButtonCheckmarks(prev => ({ ...prev, 2: true })); // Show checkmark for button 2
-        setFadeOutPhase(3); // Start fading out current section (Ventana 72h)
+        setButtonCheckmarks(prev => ({ ...prev, 2: true }));
+        setFadeOutPhase(3);
 
         setTimeout(() => {
-            setCurrentPhase(4); // Advance to next phase (Oferta)
-            ga4Tracking.phaseProgressionClicked({ phase_from: 3, phase_to: 4, button_name: 'Revelar Mi Plan Personalizado' });
-            tracking.revelationViewed('offer');
-            ga4Tracking.revelationViewed('Oferta Revelada', 3);
+            setCurrentPhase(4);
+            ga4Tracking.phaseProgressionClicked(3, 4, 0);
+            // Removido: tracking.revelationViewed (gerenciado pelo Utmify)
+            ga4Tracking.revelationViewed('Oferta Revelada');
             ga4Tracking.offerRevealed();
-            setFadeOutPhase(null); // Clear fade out state
-            // buttonCheckmarks[2] remains true, but section 3 is unmounted
-        }, 1300); // 0.3s fade-out + 1s for checkmark animation/display
+            setFadeOutPhase(null);
+        }, 1300);
     };
 
     const handleCTAClick = () => {
-        tracking.ctaClicked('result_buy');
+        // Removido: tracking.ctaClicked (gerenciado pelo Utmify)
         ga4Tracking.ctaBuyClicked('result_buy_main');
         window.open(appendUTMsToHotmartURL(), '_blank');
     };
@@ -340,7 +336,7 @@ export default function Result({ onNavigate }: ResultProps) {
                 )}
 
                 {/* FASE 1: DIAGNÓSTICO */}
-                {currentPhase === 1 && ( // Render only if currentPhase is 1
+                {currentPhase === 1 && (
                     <div 
                         ref={diagnosticoSectionRef} 
                         className={`revelation fade-in ${fadeOutPhase === 1 ? 'fade-out' : ''}`}
@@ -383,7 +379,7 @@ export default function Result({ onNavigate }: ResultProps) {
                 )}
 
                 {/* FASE 2: VÍDEO */}
-                {currentPhase === 2 && ( // Render only if currentPhase is 2
+                {currentPhase === 2 && (
                     <div 
                         ref={videoSectionRef} 
                         className={`revelation fade-in vsl-revelation ${fadeOutPhase === 2 ? 'fade-out' : ''}`}
@@ -435,7 +431,7 @@ export default function Result({ onNavigate }: ResultProps) {
                 )}
 
                 {/* FASE 3: VENTANA 72H */}
-                {currentPhase === 3 && ( // Render only if currentPhase is 3
+                {currentPhase === 3 && (
                     <div 
                         ref={ventana72SectionRef} 
                         className={`revelation fade-in ventana-box-custom ${fadeOutPhase === 3 ? 'fade-out' : ''}`}
@@ -476,7 +472,7 @@ export default function Result({ onNavigate }: ResultProps) {
                 )}
 
                 {/* FASE 4: OFERTA (OTIMIZADA) */}
-                {currentPhase >= 4 && ( // Render if currentPhase is 4 or greater (final phase)
+                {currentPhase >= 4 && (
                     <div ref={offerSectionRef} className="revelation fade-in offer-section-custom">
                         <div className="offer-badge">OFERTA EXCLUSIVA</div>
                         <h2 className="offer-title-main">{getOfferTitle(gender)}</h2>
@@ -628,7 +624,7 @@ export default function Result({ onNavigate }: ResultProps) {
                 </div>
             )}
 
-            <style jsx>{`
+            <style jsx="true">{`
                 .result-container { padding-bottom: 100px; }
                 .diagnostic-pulse { animation: diagnosticPulse 1s ease-in-out 2; }
                 @keyframes diagnosticPulse {
@@ -712,7 +708,7 @@ export default function Result({ onNavigate }: ResultProps) {
                     justify-content: center;
                     align-items: center;
                     margin-top: 20px;
-                    min-height: 80px; /* Ensure space for checkmark */
+                    min-height: 80px;
                 }
                 .checkmark-glow {
                     font-size: 4rem;
