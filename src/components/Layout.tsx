@@ -8,20 +8,27 @@ export default function Layout({ children }: LayoutProps) {
   
   useEffect(() => {
     // ========================================
-    // ✅ GOOGLE TAG MANAGER
+    // ✅ GOOGLE TAG MANAGER (SERVER-SIDE)
     // ========================================
     const gtmId = 'GTM-T8M558NG';
+    const serverUrl = 'https://gtm.reconquistaprp.online';
     
-    // GTM Script (Head)
+    // GTM Script (Head) - CARREGANDO VIA SERVIDOR
     const gtmScript = document.createElement('script');
     gtmScript.innerHTML = `
       (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
       new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
       j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      '${serverUrl}/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
       })(window,document,'script','dataLayer','${gtmId}');
     `;
     document.head.appendChild(gtmScript);
+
+    // ✅ CONFIGURAR TRANSPORT URL PARA ENVIO VIA SERVIDOR
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      'transport_url': serverUrl
+    });
 
     // ========================================
     // ✅ UTMIFY PIXEL
@@ -50,14 +57,13 @@ export default function Layout({ children }: LayoutProps) {
       {/* GTM NoScript (fallback) */}
       <noscript>
         <iframe 
-          src="https://www.googletagmanager.com/ns.html?id=GTM-T8M558NG"
+          src="https://gtm.reconquistaprp.online/ns.html?id=GTM-T8M558NG"
           height="0" 
           width="0" 
           style={{ display: 'none', visibility: 'hidden' }}
         />
       </noscript>
       
-      {/* ✅ Renderiza os componentes filhos (Chat, Result, etc) */}
       {children}
     </>
   );
