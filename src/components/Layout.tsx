@@ -1,10 +1,16 @@
 import { ReactNode, useEffect } from 'react';
+import { useFacebookEvents } from '../hooks/useFacebookEvents';
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 export default function Layout({ children }: LayoutProps) {
+  
+  // ========================================
+  // ✅ NOVA IMPLEMENTAÇÃO: CAPI via API Route
+  // ========================================
+  useFacebookEvents();
   
   useEffect(() => {
     // ========================================
