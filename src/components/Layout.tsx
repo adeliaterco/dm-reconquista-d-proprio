@@ -1,5 +1,13 @@
 import { ReactNode, useEffect } from 'react';
 
+declare global {
+  interface Window {
+    dataLayer: any[];
+    pixelId: string;
+    google_tag_manager: any;
+  }
+}
+
 interface LayoutProps {
   children: ReactNode;
 }
@@ -8,47 +16,73 @@ export default function Layout({ children }: LayoutProps) {
   
   useEffect(() => {
     // ========================================
-    // ✅ GOOGLE TAG MANAGER (SERVER-SIDE)
+    // ✅ PREVENIR CARREGAMENTO DUPLICADO
+    // ========================================
+    if (window.google_tag_manager) {
+      console.log('GTM já está carregado');
+      return;
+    }
+
+    // ========================================
+    // ✅ INICIALIZAR DATALAYER
+    // ========================================
+    window.dataLayer = window.dataLayer || [];
+    
+    // ✅ PUSH DO GTM.START (OBRIGATÓRIO)
+    window.dataLayer.push({
+      'gtm.start': new Date().getTime(),
+      event: 'gtm.js'
+    });
+
+    // ========================================
+    // ✅ GOOGLE TAG MANAGER WEB (DIRETO DO GOOGLE)
     // ========================================
     const gtmId = 'GTM-T8M558NG';
-    const serverUrl = 'https://gtm.reconquistaprp.online';
     
-    // GTM Script (Head) - CARREGANDO VIA SERVIDOR
+    // ✅ CRIAR E INSERIR SCRIPT DO GTM
     const gtmScript = document.createElement('script');
-    gtmScript.innerHTML = `
-      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-      '${serverUrl}/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-      })(window,document,'script','dataLayer','${gtmId}');
-    `;
-    document.head.appendChild(gtmScript);
-
-    // ✅ CONFIGURAR TRANSPORT URL PARA ENVIO VIA SERVIDOR
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({
-      'transport_url': serverUrl
-    });
+    gtmScript.async = true;
+    gtmScript.src = `https://www.googletagmanager.com/gtm.js?id=${gtmId}`;
+    
+    // ✅ CALLBACK APÓS CARREGAMENTO
+    gtmScript.onload = () => {
+      console.log('✅ GTM Web carregado com sucesso');
+    };
+    
+    gtmScript.onerror = () => {
+      console.error('❌ Erro ao carregar GTM');
+    };
+    
+    // ✅ INSERIR NO HEAD (PRIMEIRO SCRIPT)
+    const firstScript = document.getElementsByTagName('script')[0];
+    if (firstScript && firstScript.parentNode) {
+      firstScript.parentNode.insertBefore(gtmScript, firstScript);
+    } else {
+      document.head.appendChild(gtmScript);
+    }
 
     // ========================================
     // ✅ UTMIFY PIXEL
     // ========================================
     window.pixelId = "683e4507be02a8b1bece6041";
     const utmifyPixelScript = document.createElement("script");
-    utmifyPixelScript.setAttribute("async", "");
-    utmifyPixelScript.setAttribute("defer", "");
-    utmifyPixelScript.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+    utmifyPixelScript.async = true;
+    utmifyPixelScript.defer = true;
+    utmifyPixelScript.src = "https://cdn.utmify.com.br/scripts/pixel/pixel.js";
     document.head.appendChild(utmifyPixelScript);
 
     // ========================================
     // ✅ UTMIFY UTM TRACKER
     // ========================================
     const utmifyUtmScript = document.createElement("script");
-    utmifyUtmScript.setAttribute("src", "https://cdn.utmify.com.br/scripts/utms/latest.js");
+    utmifyUtmScript.src = "https://cdn.utmify.com.br/scripts/utms/latest.js";
     utmifyUtmScript.setAttribute("data-utmify-prevent-subids", "");
-    utmifyUtmScript.setAttribute("async", "");
-    utmifyUtmScript.setAttribute("defer", "");
+    utmifyUtmScript.async = true;
+    utmifyUtmScript.defer = true;
     document.head.appendChild(utmifyUtmScript);
+
+    // ✅ LOG DE DEBUG
+    console.log('🚀 GTM Web inicializado');
 
   }, []);
 
@@ -57,7 +91,7 @@ export default function Layout({ children }: LayoutProps) {
       {/* GTM NoScript (fallback) */}
       <noscript>
         <iframe 
-          src="https://gtm.reconquistaprp.online/ns.html?id=GTM-T8M558NG"
+          src="https://www.googletagmanager.com/ns.html?id=GTM-T8M558NG"
           height="0" 
           width="0" 
           style={{ display: 'none', visibility: 'hidden' }}
