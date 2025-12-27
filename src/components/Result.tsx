@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { tracking } from '../utils/tracking';
 import { storage } from '../utils/storage';
 import { playKeySound, getHotmartUrl } from '../utils/animations';
 import { QuizAnswer } from '../types/quiz';
@@ -101,7 +102,7 @@ export default function Result({ onNavigate }: ResultProps) {
     // --- EFEITO PRINCIPAL DE PROGRESSÃO ---
     useEffect(() => {
         ensureUTMs();
-        // Removido: tracking.pageView (gerenciado pelo Utmify)
+        tracking.pageView('resultado');
         ga4Tracking.resultPageView();
 
         const progressInterval = setInterval(() => {
@@ -121,8 +122,8 @@ export default function Result({ onNavigate }: ResultProps) {
         const timerPhase1 = setTimeout(() => {
             setCurrentPhase(1);
             playKeySound();
-            // Removido: tracking.revelationViewed (gerenciado pelo Utmify)
-            ga4Tracking.revelationViewed('Por qué te dejó');
+            tracking.revelationViewed('why_left');
+            ga4Tracking.revelationViewed('Por qué te dejó', 1);
         }, 2500);
 
         const countdownInterval = setInterval(() => setTimeLeft(prev => (prev <= 1 ? 0 : prev - 1)), 1000);
@@ -132,6 +133,7 @@ export default function Result({ onNavigate }: ResultProps) {
                 if (prev > 15) {
                     const newSpots = prev - 1;
                     storage.setSpotsLeft(newSpots);
+                    ga4Tracking.spotsUpdated(newSpots);
                     return newSpots;
                 }
                 return prev;
@@ -169,6 +171,7 @@ export default function Result({ onNavigate }: ResultProps) {
                     if (prev <= 1) {
                         clearInterval(delayInterval);
                         setIsVideoButtonEnabled(true);
+                        ga4Tracking.videoButtonUnlocked({ unlock_time_seconds: 50, video_name: 'VSL Plan Personalizado' });
                         return 0;
                     }
                     return prev - 1;
@@ -185,7 +188,7 @@ export default function Result({ onNavigate }: ResultProps) {
     useEffect(() => {
         if (currentPhase !== 2 || !videoSectionRef.current) return;
         const timer = setTimeout(() => {
-            const vslPlaceholder = videoSectionRef.current!.querySelector('.vsl-placeholder');
+            const vslPlaceholder = videoSectionRef.current.querySelector('.vsl-placeholder');
             if (vslPlaceholder) {
                 vslPlaceholder.innerHTML = `
                     <div style="position: relative; width: 100%; padding-bottom: 56.25%; background: #000; border-radius: 8px; overflow: hidden;">
@@ -234,8 +237,8 @@ export default function Result({ onNavigate }: ResultProps) {
 
         setTimeout(() => {
             setCurrentPhase(2);
-            ga4Tracking.phaseProgressionClicked(1, 2, 0);
-            // Removido: tracking.vslEvent (gerenciado pelo Utmify)
+            ga4Tracking.phaseProgressionClicked({ phase_from: 1, phase_to: 2, button_name: 'Desbloquear El Vídeo Secreto' });
+            tracking.vslEvent('started');
             ga4Tracking.videoStarted();
             setFadeOutPhase(null);
         }, 1300);
@@ -249,9 +252,9 @@ export default function Result({ onNavigate }: ResultProps) {
 
         setTimeout(() => {
             setCurrentPhase(3);
-            ga4Tracking.phaseProgressionClicked(2, 3, 0);
-            // Removido: tracking.revelationViewed (gerenciado pelo Utmify)
-            ga4Tracking.revelationViewed('Ventana 72 Horas');
+            ga4Tracking.phaseProgressionClicked({ phase_from: 2, phase_to: 3, button_name: 'Revelar VENTANA DE 72 HORAS' });
+            tracking.revelationViewed('72h_window');
+            ga4Tracking.revelationViewed('Ventana 72 Horas', 2);
             setFadeOutPhase(null);
         }, 1300);
     };
@@ -263,16 +266,16 @@ export default function Result({ onNavigate }: ResultProps) {
 
         setTimeout(() => {
             setCurrentPhase(4);
-            ga4Tracking.phaseProgressionClicked(3, 4, 0);
-            // Removido: tracking.revelationViewed (gerenciado pelo Utmify)
-            ga4Tracking.revelationViewed('Oferta Revelada');
+            ga4Tracking.phaseProgressionClicked({ phase_from: 3, phase_to: 4, button_name: 'Revelar Mi Plan Personalizado' });
+            tracking.revelationViewed('offer');
+            ga4Tracking.revelationViewed('Oferta Revelada', 3);
             ga4Tracking.offerRevealed();
             setFadeOutPhase(null);
         }, 1300);
     };
 
     const handleCTAClick = () => {
-        // Removido: tracking.ctaClicked (gerenciado pelo Utmify)
+        tracking.ctaClicked('result_buy');
         ga4Tracking.ctaBuyClicked('result_buy_main');
         window.open(appendUTMsToHotmartURL(), '_blank');
     };
@@ -362,7 +365,6 @@ export default function Result({ onNavigate }: ResultProps) {
                             <p><strong>Tu situación específica:</strong><br />{getEmotionalValidation(quizData)}</p>
                         </div>
 
-                        {/* BOTÃO 1: DESBLOQUEAR VÍDEO */}
                         {buttonCheckmarks[0] ? (
                             <div className="checkmark-container">
                                 <div className="checkmark-glow">✅</div>
@@ -392,7 +394,6 @@ export default function Result({ onNavigate }: ResultProps) {
                             <div className="vsl-placeholder"></div> 
                         </div>
 
-                        {/* BOTÃO 2: REVELAR VENTANA DE 72 HORAS (COM DELAY E INDICADOR) */}
                         {buttonCheckmarks[1] ? (
                             <div className="checkmark-container">
                                 <div className="checkmark-glow">✅</div>
@@ -427,6 +428,181 @@ export default function Result({ onNavigate }: ResultProps) {
                                 )}
                             </div>
                         )}
+
+                        {/* ✅ DEPOIMENTOS ESTRATÉGICOS - INSERIDO AQUI */}
+                        <div className="testimonials-section fade-in" style={{
+                            marginTop: 'clamp(32px, 6vw, 48px)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 'clamp(20px, 4vw, 24px)'
+                        }}>
+                            {/* DEPOIMENTO 1 - HOMEM (PRIORIDADE) */}
+                            <div className="testimonial-card" style={{
+                                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(74, 222, 128, 0.1))',
+                                border: '2px solid rgba(16, 185, 129, 0.4)',
+                                borderRadius: '16px',
+                                padding: 'clamp(20px, 5vw, 28px)',
+                                boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
+                                display: 'flex',
+                                gap: 'clamp(16px, 4vw, 20px)',
+                                alignItems: 'flex-start'
+                            }}>
+                                <img 
+                                    src="https://comprarplanseguro.shop/wp-content/uploads/2025/08/Captura-de-Tela-2025-08-08-as-19.24.05.png" 
+                                    alt="Carlos M." 
+                                    style={{
+                                        width: 'clamp(60px, 15vw, 80px)',
+                                        height: 'clamp(60px, 15vw, 80px)',
+                                        borderRadius: '50%',
+                                        objectFit: 'cover',
+                                        border: '3px solid rgba(16, 185, 129, 0.6)',
+                                        flexShrink: 0
+                                    }}
+                                />
+                                <div style={{ flex: 1 }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        marginBottom: 'clamp(8px, 2vw, 12px)'
+                                    }}>
+                                        <strong style={{
+                                            fontSize: 'clamp(1rem, 4vw, 1.25rem)',
+                                            color: '#10b981'
+                                        }}>
+                                            Carlos M.
+                                        </strong>
+                                        <span style={{
+                                            fontSize: 'clamp(0.75rem, 3vw, 0.875rem)',
+                                            color: 'rgba(255,255,255,0.6)'
+                                        }}>
+                                            • 29 años • Buenos Aires
+                                        </span>
+                                    </div>
+                                    <div style={{
+                                        color: '#facc15',
+                                        fontSize: 'clamp(1rem, 4vw, 1.25rem)',
+                                        marginBottom: 'clamp(8px, 2vw, 10px)'
+                                    }}>
+                                        ⭐⭐⭐⭐⭐
+                                    </div>
+                                    <p style={{
+                                        fontSize: 'clamp(0.9rem, 3.5vw, 1.05rem)',
+                                        lineHeight: '1.6',
+                                        color: 'white',
+                                        margin: 0,
+                                        fontStyle: 'italic'
+                                    }}>
+                                        "Ella estaba con otro tipo. Yo estaba destruido. 
+                                        El <strong style={{ color: '#10b981' }}>Módulo 4 (Protocolo de Emergencia)</strong> 
+                                        me salvó de cometer errores fatales. Seguí las 3 fases de la Ventana de 72 Horas al pie de la letra, 
+                                        y en 19 días ella terminó con él y volvió conmigo. 
+                                        <strong style={{ color: '#facc15' }}> No lo hubiera creído si no me pasaba a mí</strong>. 
+                                        Ricardo sabe exactamente cómo funciona la mente femenina."
+                                    </p>
+                                    <div style={{
+                                        marginTop: 'clamp(12px, 3vw, 16px)',
+                                        padding: 'clamp(8px, 2vw, 12px)',
+                                        background: 'rgba(0,0,0,0.3)',
+                                        borderRadius: '8px',
+                                        borderLeft: '4px solid #10b981'
+                                    }}>
+                                        <p style={{
+                                            fontSize: 'clamp(0.8rem, 3vw, 0.95rem)',
+                                            color: 'rgba(255,255,255,0.8)',
+                                            margin: 0,
+                                            lineHeight: '1.5'
+                                        }}>
+                                            <strong style={{ color: '#10b981' }}>✓ Resultado:</strong> Reconquista en 19 días | 
+                                            <strong style={{ color: '#10b981' }}> ✓ Situación:</strong> Ella con otra persona
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* DEPOIMENTO 2 - HOMEM (CONTATO ZERO) */}
+                            <div className="testimonial-card" style={{
+                                background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.15), rgba(250, 204, 21, 0.1))',
+                                border: '2px solid rgba(234, 179, 8, 0.4)',
+                                borderRadius: '16px',
+                                padding: 'clamp(20px, 5vw, 28px)',
+                                boxShadow: '0 8px 24px rgba(234, 179, 8, 0.3)',
+                                display: 'flex',
+                                gap: 'clamp(16px, 4vw, 20px)',
+                                alignItems: 'flex-start'
+                            }}>
+                                <img 
+                                    src="https://comprarplanseguro.shop/wp-content/uploads/2025/08/Captura-de-Tela-2025-08-08-as-19.01.05.png" 
+                                    alt="Diego R." 
+                                    style={{
+                                        width: 'clamp(60px, 15vw, 80px)',
+                                        height: 'clamp(60px, 15vw, 80px)',
+                                        borderRadius: '50%',
+                                        objectFit: 'cover',
+                                        border: '3px solid rgba(234, 179, 8, 0.6)',
+                                        flexShrink: 0
+                                    }}
+                                />
+                                <div style={{ flex: 1 }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        marginBottom: 'clamp(8px, 2vw, 12px)'
+                                    }}>
+                                        <strong style={{
+                                            fontSize: 'clamp(1rem, 4vw, 1.25rem)',
+                                            color: '#eab308'
+                                        }}>
+                                            Diego R.
+                                        </strong>
+                                        <span style={{
+                                            fontSize: 'clamp(0.75rem, 3vw, 0.875rem)',
+                                            color: 'rgba(255,255,255,0.6)'
+                                        }}>
+                                            • 32 años • Ciudad de México
+                                        </span>
+                                    </div>
+                                    <div style={{
+                                        color: '#facc15',
+                                        fontSize: 'clamp(1rem, 4vw, 1.25rem)',
+                                        marginBottom: 'clamp(8px, 2vw, 10px)'
+                                    }}>
+                                        ⭐⭐⭐⭐⭐
+                                    </div>
+                                    <p style={{
+                                        fontSize: 'clamp(0.9rem, 3.5vw, 1.05rem)',
+                                        lineHeight: '1.6',
+                                        color: 'white',
+                                        margin: 0,
+                                        fontStyle: 'italic'
+                                    }}>
+                                        "Llevábamos 5 meses sin hablar. Ella me bloqueó de todo. 
+                                        Pensé que era imposible. Apliqué el <strong style={{ color: '#eab308' }}>Protocolo de Contacto Zero Inverso</strong> 
+                                        del Módulo 1, y en 13 días ella me desbloqueó y me escribió primero. 
+                                        Hoy llevamos 3 meses juntos de nuevo, <strong style={{ color: '#facc15' }}>y la relación es 10 veces mejor</strong>. 
+                                        Este método funciona incluso en casos extremos como el mío."
+                                    </p>
+                                    <div style={{
+                                        marginTop: 'clamp(12px, 3vw, 16px)',
+                                        padding: 'clamp(8px, 2vw, 12px)',
+                                        background: 'rgba(0,0,0,0.3)',
+                                        borderRadius: '8px',
+                                        borderLeft: '4px solid #eab308'
+                                    }}>
+                                        <p style={{
+                                            fontSize: 'clamp(0.8rem, 3vw, 0.95rem)',
+                                            color: 'rgba(255,255,255,0.8)',
+                                            margin: 0,
+                                            lineHeight: '1.5'
+                                        }}>
+                                            <strong style={{ color: '#eab308' }}>✓ Resultado:</strong> Reconquista en 13 días | 
+                                            <strong style={{ color: '#eab308' }}> ✓ Situación:</strong> Bloqueado 5 meses
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )}
 
@@ -455,7 +631,6 @@ export default function Result({ onNavigate }: ResultProps) {
                             className="ventana-img"
                         />
 
-                        {/* BOTÃO 3: REVELAR MI PLAN PERSONALIZADO */}
                         {buttonCheckmarks[2] ? (
                             <div className="checkmark-container">
                                 <div className="checkmark-glow">✅</div>
@@ -471,13 +646,163 @@ export default function Result({ onNavigate }: ResultProps) {
                     </div>
                 )}
 
-                {/* FASE 4: OFERTA (OTIMIZADA) */}
+                {/* ✅ FASE 4: OFERTA (OTIMIZADA) */}
                 {currentPhase >= 4 && (
                     <div ref={offerSectionRef} className="revelation fade-in offer-section-custom">
                         <div className="offer-badge">OFERTA EXCLUSIVA</div>
                         <h2 className="offer-title-main">{getOfferTitle(gender)}</h2>
 
-                        {/* BOX DE DADOS DO QUIZ NA OFERTA */}
+                        {/* ✅ NOVO: STACK DE VALOR VISUAL */}
+                        <div className="value-stack-box" style={{
+                            background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(234, 179, 8, 0.1))',
+                            border: '3px solid rgba(16, 185, 129, 0.4)',
+                            borderRadius: '16px',
+                            padding: 'clamp(20px, 5vw, 32px)',
+                            marginBottom: 'clamp(24px, 5vw, 32px)',
+                            boxShadow: '0 8px 32px rgba(16, 185, 129, 0.3)'
+                        }}>
+                            <h3 style={{
+                                fontSize: 'clamp(1.25rem, 5vw, 1.75rem)',
+                                color: '#10b981',
+                                textAlign: 'center',
+                                marginBottom: 'clamp(16px, 4vw, 24px)',
+                                fontWeight: '900'
+                            }}>
+                                💎 LO QUE RECIBES HOY
+                            </h3>
+                            
+                            <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 'clamp(8px, 2vw, 12px)',
+                                marginBottom: 'clamp(16px, 4vw, 20px)'
+                            }}>
+                                <div className="value-item" style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    padding: 'clamp(8px, 2vw, 12px)',
+                                    background: 'rgba(0,0,0,0.3)',
+                                    borderRadius: '8px'
+                                }}>
+                                    <span style={{ fontSize: 'clamp(0.9rem, 3.5vw, 1.1rem)' }}>
+                                        📱 Módulo 1: Cómo Hablar Con {gender === 'HOMBRE' ? 'Ella' : 'Él'}
+                                    </span>
+                                    <strong style={{ color: '#10b981', fontSize: 'clamp(1rem, 4vw, 1.25rem)' }}>$27</strong>
+                                </div>
+                                <div className="value-item" style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    padding: 'clamp(8px, 2vw, 12px)',
+                                    background: 'rgba(0,0,0,0.3)',
+                                    borderRadius: '8px'
+                                }}>
+                                    <span style={{ fontSize: 'clamp(0.9rem, 3.5vw, 1.1rem)' }}>👥 Módulo 2: Cómo Encontrarte</span>
+                                    <strong style={{ color: '#10b981', fontSize: 'clamp(1rem, 4vw, 1.25rem)' }}>$27</strong>
+                                </div>
+                                <div className="value-item" style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    padding: 'clamp(8px, 2vw, 12px)',
+                                    background: 'rgba(0,0,0,0.3)',
+                                    borderRadius: '8px'
+                                }}>
+                                    <span style={{ fontSize: 'clamp(0.9rem, 3.5vw, 1.1rem)' }}>❤️ Módulo 3: Reconquista Definitiva</span>
+                                    <strong style={{ color: '#10b981', fontSize: 'clamp(1rem, 4vw, 1.25rem)' }}>$27</strong>
+                                </div>
+                                <div className="value-item" style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    padding: 'clamp(8px, 2vw, 12px)',
+                                    background: 'rgba(0,0,0,0.3)',
+                                    borderRadius: '8px'
+                                }}>
+                                    <span style={{ fontSize: 'clamp(0.9rem, 3.5vw, 1.1rem)' }}>🚨 Módulo 4: Protocolo de Emergencia</span>
+                                    <strong style={{ color: '#10b981', fontSize: 'clamp(1rem, 4vw, 1.25rem)' }}>$27</strong>
+                                </div>
+                                <div className="value-item" style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    padding: 'clamp(8px, 2vw, 12px)',
+                                    background: 'rgba(0,0,0,0.3)',
+                                    borderRadius: '8px'
+                                }}>
+                                    <span style={{ fontSize: 'clamp(0.9rem, 3.5vw, 1.1rem)' }}>🎁 Bônus: Scripts + Guías</span>
+                                    <strong style={{ color: '#10b981', fontSize: 'clamp(1rem, 4vw, 1.25rem)' }}>$15</strong>
+                                </div>
+                            </div>
+
+                            <div style={{
+                                borderTop: '2px solid rgba(16, 185, 129, 0.3)',
+                                paddingTop: 'clamp(12px, 3vw, 16px)',
+                                marginBottom: 'clamp(12px, 3vw, 16px)'
+                            }}>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    marginBottom: 'clamp(8px, 2vw, 12px)'
+                                }}>
+                                    <span style={{ 
+                                        fontSize: 'clamp(1rem, 4vw, 1.25rem)', 
+                                        color: 'rgba(255,255,255,0.7)',
+                                        textDecoration: 'line-through'
+                                    }}>
+                                        VALOR TOTAL:
+                                    </span>
+                                    <strong style={{ 
+                                        fontSize: 'clamp(1.25rem, 5vw, 1.75rem)', 
+                                        color: 'rgba(255,255,255,0.7)',
+                                        textDecoration: 'line-through'
+                                    }}>
+                                        $123
+                                    </strong>
+                                </div>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    <span style={{ 
+                                        fontSize: 'clamp(1.25rem, 5vw, 1.75rem)', 
+                                        color: '#facc15',
+                                        fontWeight: '900'
+                                    }}>
+                                        PRECIO HOY:
+                                    </span>
+                                    <strong style={{ 
+                                        fontSize: 'clamp(2rem, 8vw, 3rem)', 
+                                        color: '#10b981',
+                                        fontWeight: '900'
+                                    }}>
+                                        $9.90
+                                    </strong>
+                                </div>
+                            </div>
+
+                            <div style={{
+                                background: 'rgba(250, 204, 21, 0.2)',
+                                border: '2px solid rgba(250, 204, 21, 0.5)',
+                                borderRadius: '12px',
+                                padding: 'clamp(12px, 3vw, 16px)',
+                                textAlign: 'center'
+                            }}>
+                                <p style={{
+                                    fontSize: 'clamp(1rem, 4vw, 1.25rem)',
+                                    color: '#facc15',
+                                    fontWeight: '700',
+                                    margin: 0
+                                }}>
+                                    🔥 92% DE DESCUENTO - SOLO HOY
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* BOX DE DADOS DO QUIZ NA OFERTA (MANTIDO) */}
                         <div className="quiz-summary-box" style={{
                             background: 'rgba(234, 179, 8, 0.1)',
                             border: '2px solid rgba(234, 179, 8, 0.3)',
@@ -508,7 +833,7 @@ export default function Result({ onNavigate }: ResultProps) {
                             </ul>
                         </div>
 
-                        {/* FEATURES COM CHECKMARKS */}
+                        {/* FEATURES COM CHECKMARKS (MANTIDO) */}
                         <div className="offer-features" style={{
                             display: 'flex',
                             flexDirection: 'column',
@@ -540,31 +865,92 @@ export default function Result({ onNavigate }: ResultProps) {
                             ))}
                         </div>
 
-                        {/* PREÇO E DESCONTO */}
+                        {/* PREÇO E DESCONTO (MANTIDO) */}
                         <div className="price-box">
-                            <p className="price-old">Precio regular: $67</p>
+                            <p className="price-old">Precio regular: $123</p>
                             <p className="price-new">$9.90</p>
-                            <p className="price-discount">💰 85% de descuento HOY</p>
+                            <p className="price-discount">💰 92% de descuento HOY</p>
                         </div>
 
-                        {/* BOTÃO 4: CTA FINAL */}
-                        <button className="cta-button btn-green btn-size-4 btn-animation-glowshake" onClick={handleCTAClick}>
-                            🚀 SÍ, QUIERO MI RECONQUISTA GARANTIZADA 🚀
+                        {/* ✅ ALTERADO: CTA OTIMIZADO COM PREÇO E URGÊNCIA */}
+                        <button 
+                            className="cta-button btn-green btn-size-4 btn-animation-glowshake" 
+                            onClick={handleCTAClick}
+                            style={{
+                                fontSize: 'clamp(1.1rem, 4.5vw, 1.5rem)',
+                                padding: 'clamp(18px, 4vw, 24px)',
+                                lineHeight: '1.4'
+                            }}
+                        >
+                            <span style={{ display: 'block', marginBottom: '4px' }}>
+                                🚀 SÍ, QUIERO ACCESO POR $9.90
+                            </span>
+                            <span style={{ 
+                                display: 'block', 
+                                fontSize: 'clamp(0.8rem, 3vw, 1rem)',
+                                opacity: 0.9,
+                                fontWeight: '600'
+                            }}>
+                                ⏰ {formatTime(timeLeft)} RESTANTES
+                            </span>
                         </button>
 
-                        {/* PROVA SOCIAL REAL */}
+                        {/* ✅ NOVO: GARANTIA DESTACADA */}
+                        <div className="guarantee-section" style={{
+                            background: 'linear-gradient(135deg, rgba(74, 222, 128, 0.15), rgba(16, 185, 129, 0.1))',
+                            border: '3px solid rgba(74, 222, 128, 0.4)',
+                            borderRadius: '16px',
+                            padding: 'clamp(20px, 5vw, 32px)',
+                            margin: 'clamp(24px, 5vw, 32px) 0',
+                            textAlign: 'center',
+                            boxShadow: '0 8px 32px rgba(74, 222, 128, 0.3)'
+                        }}>
+                            <div style={{ fontSize: 'clamp(3rem, 10vw, 4rem)', marginBottom: '12px' }}>
+                                🛡️
+                            </div>
+                            <h3 style={{
+                                fontSize: 'clamp(1.25rem, 5vw, 1.75rem)',
+                                color: '#4ade80',
+                                marginBottom: 'clamp(12px, 3vw, 16px)',
+                                fontWeight: '900'
+                            }}>
+                                GARANTÍA BLINDADA DE 30 DÍAS
+                            </h3>
+                            <p style={{
+                                fontSize: 'clamp(0.95rem, 4vw, 1.15rem)',
+                                lineHeight: '1.6',
+                                color: 'white',
+                                marginBottom: '16px'
+                            }}>
+                                Si en 30 días no ves resultados concretos en tu reconquista, 
+                                <strong style={{ color: '#4ade80' }}> devolvemos el 100% de tu dinero</strong>, 
+                                sin preguntas, sin burocracia.
+                            </p>
+                            <p style={{
+                                fontSize: 'clamp(0.85rem, 3.5vw, 1rem)',
+                                color: 'rgba(255,255,255,0.8)',
+                                fontStyle: 'italic'
+                            }}>
+                                ✓ Riesgo CERO para ti<br/>
+                                ✓ Reembolso en 24-48 horas<br/>
+                                ✓ Sin complicaciones
+                            </p>
+                        </div>
+
+                        {/* PROVA SOCIAL REAL (MANTIDO) */}
                         <div className="real-proof-box">
                             <p>⭐ <strong>4.8/5 estrellas</strong> (2.341 avaliações verificadas)</p>
                             <p>📱 Última compra hace 4 minutos</p>
                         </div>
 
+                        {/* TRUST ICONS (MANTIDO) */}
                         <div className="trust-icons">
                             <span>🔒 Compra segura</span>
                             <span>✅ Acceso instantáneo</span>
                             <span>↩️ 30 días de garantía</span>
                         </div>
 
-                        {/* GRID DE URGÊNCIA OTIMIZADO */}
+                        {/* GRID DE URGÊNCIA OTIMIZADO (MANTIDO) */}
                         <div className="final-urgency-grid-optimized">
                             <div className="urgency-item-compact">
                                 <span style={{ fontSize: 'clamp(0.75rem, 3vw, 0.875rem)', opacity: 0.8 }}>Tiempo:</span>
@@ -576,7 +962,7 @@ export default function Result({ onNavigate }: ResultProps) {
                             </div>
                         </div>
 
-                        {/* CONTADOR DE PESSOAS COMPRANDO (REDUZIDO) */}
+                        {/* CONTADOR DE PESSOAS COMPRANDO (MANTIDO) */}
                         <p className="people-buying-counter" style={{
                             textAlign: 'center',
                             color: 'rgb(74, 222, 128)',
@@ -590,7 +976,7 @@ export default function Result({ onNavigate }: ResultProps) {
                             ✨ {peopleBuying} comprando ahora
                         </p>
 
-                        {/* PROVA SOCIAL +12.847 (REDUZIDA) */}
+                        {/* PROVA SOCIAL +12.847 (MANTIDO) */}
                         <p className="social-proof-count" style={{
                             textAlign: 'center',
                             color: 'rgb(74, 222, 128)',
@@ -603,7 +989,7 @@ export default function Result({ onNavigate }: ResultProps) {
                             ✓ +12.847 reconquistas exitosas
                         </p>
 
-                        {/* EXCLUSIVIDADE (REDUZIDA) */}
+                        {/* EXCLUSIVIDADE (MANTIDO) */}
                         <p className="guarantee-text" style={{
                             textAlign: 'center',
                             fontSize: 'clamp(0.75rem, 3vw, 0.875rem)',
@@ -617,14 +1003,14 @@ export default function Result({ onNavigate }: ResultProps) {
                 )}
             </div>
 
-            {/* STICKY FOOTER */}
+            {/* STICKY FOOTER (MANTIDO) */}
             {currentPhase >= 4 && (
                 <div className="sticky-footer-urgency fade-in-up">
                     ⏰ {formatTime(timeLeft)} • {spotsLeft} spots restantes
                 </div>
             )}
 
-            <style jsx="true">{`
+            <style jsx>{`
                 .result-container { padding-bottom: 100px; }
                 .diagnostic-pulse { animation: diagnosticPulse 1s ease-in-out 2; }
                 @keyframes diagnosticPulse {
@@ -652,6 +1038,7 @@ export default function Result({ onNavigate }: ResultProps) {
                     margin-top: 20px;
                     transition: all 0.3s ease;
                     display: flex;
+                    flex-direction: column;
                     align-items: center;
                     justify-content: center;
                     gap: 10px;
