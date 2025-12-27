@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { tracking } from '../utils/tracking';
 import { storage } from '../utils/storage';
 import { playKeySound, getHotmartUrl } from '../utils/animations';
 import { QuizAnswer } from '../types/quiz';
@@ -102,7 +101,6 @@ export default function Result({ onNavigate }: ResultProps) {
     // --- EFEITO PRINCIPAL DE PROGRESSÃO ---
     useEffect(() => {
         ensureUTMs();
-        tracking.pageView('resultado');
         ga4Tracking.resultPageView();
 
         const progressInterval = setInterval(() => {
@@ -122,7 +120,6 @@ export default function Result({ onNavigate }: ResultProps) {
         const timerPhase1 = setTimeout(() => {
             setCurrentPhase(1);
             playKeySound();
-            tracking.revelationViewed('why_left');
             ga4Tracking.revelationViewed('Por qué te dejó', 1);
         }, 2500);
 
@@ -238,7 +235,6 @@ export default function Result({ onNavigate }: ResultProps) {
         setTimeout(() => {
             setCurrentPhase(2);
             ga4Tracking.phaseProgressionClicked({ phase_from: 1, phase_to: 2, button_name: 'Desbloquear El Vídeo Secreto' });
-            tracking.vslEvent('started');
             ga4Tracking.videoStarted();
             setFadeOutPhase(null);
         }, 1300);
@@ -253,7 +249,6 @@ export default function Result({ onNavigate }: ResultProps) {
         setTimeout(() => {
             setCurrentPhase(3);
             ga4Tracking.phaseProgressionClicked({ phase_from: 2, phase_to: 3, button_name: 'Revelar VENTANA DE 72 HORAS' });
-            tracking.revelationViewed('72h_window');
             ga4Tracking.revelationViewed('Ventana 72 Horas', 2);
             setFadeOutPhase(null);
         }, 1300);
@@ -267,7 +262,6 @@ export default function Result({ onNavigate }: ResultProps) {
         setTimeout(() => {
             setCurrentPhase(4);
             ga4Tracking.phaseProgressionClicked({ phase_from: 3, phase_to: 4, button_name: 'Revelar Mi Plan Personalizado' });
-            tracking.revelationViewed('offer');
             ga4Tracking.revelationViewed('Oferta Revelada', 3);
             ga4Tracking.offerRevealed();
             setFadeOutPhase(null);
@@ -275,7 +269,6 @@ export default function Result({ onNavigate }: ResultProps) {
     };
 
     const handleCTAClick = () => {
-        tracking.ctaClicked('result_buy');
         ga4Tracking.ctaBuyClicked('result_buy_main');
         window.open(appendUTMsToHotmartURL(), '_blank');
     };
