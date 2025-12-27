@@ -10,6 +10,13 @@ declare global {
 
 class GA4Tracking {
   
+  // ✅ Garante que o dataLayer existe
+  private ensureDataLayer(): void {
+    if (typeof window !== 'undefined') {
+      window.dataLayer = window.dataLayer || [];
+    }
+  }
+
   // ✅ Verifica se o dataLayer está disponível
   private isAvailable(): boolean {
     return typeof window !== 'undefined' && Array.isArray(window.dataLayer);
@@ -17,6 +24,9 @@ class GA4Tracking {
 
   // ✅ Envia evento via dataLayer.push() (CORRIGIDO)
   private sendEvent(eventName: string, params?: Record<string, any>) {
+    // ✅ GARANTE QUE O DATALAYER EXISTE
+    this.ensureDataLayer();
+    
     if (this.isAvailable()) {
       window.dataLayer.push({
         event: eventName,
